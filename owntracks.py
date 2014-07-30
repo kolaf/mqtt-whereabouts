@@ -96,15 +96,16 @@ def on_connect(client, userdata, flags, rc):
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
 	print(msg.topic+" "+str(msg.payload))	
-	decoded = json.loads(msg.payload)
-	if decoded["_type"] == "waypoint":
-		root, user, device, type = msg.topic.split('/')
-		print "detected waypoint"
-		decoded["owner"] = user
-		waypoints.append (decoded)
-		save_waypoints()
-	
-	
+	if len(msg.payload) >0:
+		decoded = json.loads(msg.payload)
+		if decoded["_type"] == "waypoint":
+			root, user, device, type = msg.topic.split('/')
+			print "detected waypoint"
+			decoded["owner"] = user
+			waypoints.append (decoded)
+			save_waypoints()
+		
+		
 	if decoded['_type'] == "location":
 		root, user, device = msg.topic.split('/')
 		decoded = in_range(decoded)
@@ -150,12 +151,13 @@ def dump_raw():
 	page.close()
 
 load_waypoints()
+print "Loaded waypoints..."
 print waypoints		
-client = mqtt.Client()
+client = mqtt.Client( protocol=mqtt.MQTTv31)
 client.on_connect = on_connect
 client.on_message = on_message
-
-client.connect("localhost", port=1883, keepalive=60, bind_address="")
+print "trying to connect..."
+client.connect("localhost", port=8883)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
