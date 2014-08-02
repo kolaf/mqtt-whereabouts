@@ -11,10 +11,13 @@
 <script>
 /* Configuration starts here */
 //The places array is the list of the places to be displayed on the clock. Each place is defined by its own list. The first entry in this list is the name displayed on the clock, and optional subsequent entries are synonyms that can be used for matching waypoint names.
-var places = [["Forsvunnet", "lost"], ["Holt"],  ["Leirsund", "Marianne"],  ["Tunnelltoppen", "Merethe"],  ["Ninabben"],   ["Butikken", "store"],["Mortal peril", "mortal", "peri"], ["Jobb", "work"], ["Skole", "school"], ["Trener", "endomondo"], ["Kjører", "driving"]];
+var static_places = [["Forsvunnet", "lost"], ["Holt"],  ["Leirsund", "Marianne"],  ["Tunnelltoppen", "Merethe"],  ["Butikken", "store","butikk"],["Mortal peril", "mortal", "peril"], ["Jobb", "work"], ["Skole", "school"]];//, ["Trener", "endomondo"], ["Kjører", "driving"]];
+var dynamic_places = [];
 var offset_count = 1;
 var hand_length = 250;
 var clock_radius = 220;
+var maximum_places = 12;
+var maximum_dynamic_places = maximum_places- static_places.length;
 var data_file = "current_raw.html";
 var current = {};
 var user_count = 0;
@@ -27,7 +30,32 @@ configuration ["villemy"] = new user_configuration ("purple");
 $.ajaxSetup({ cache: false });
 var canvas = document.getElementById('myCanvas');
 var context = canvas.getContext('2d');
+$.urlParam = function(name){
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results==null){
+       return null;
+    }
+    else{
+       return decodeURIComponent(results[1]) || 0;
+    }
+}
+var visible_users = get_visible_users();
 
+function check_user_display (user) {
+	if (visible_users.length == 0) {
+		return true;
+	}
+	return  $.inArray(user, visible_users) > -1;
+}
+
+function get_visible_users() {
+	var user_string =$.urlParam("users");
+	if (user_string) {
+		var return_list = user_string.split(",");
+		return return_list;
+	}
+	return [];
+}
 
 
 function sector (number) {
@@ -45,6 +73,7 @@ function user_configuration (colour) {
 function draw_face() {
 	context.clearRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height);
 	var index = 0;
+	var places = static_places.concat (dynamic_places);
 	for(index in places) {
 		context.save();
 		context.translate(0, 0);
@@ -73,6 +102,8 @@ function degreesToRadians(degrees) {
   return (Math.PI / 180) * degrees
 }
 function offset_size () {
+
+	var places = static_places.concat (dynamic_places);
 //	return Math.round(360/ (places.length*Object.keys (configuration).length +2));
 	return Math.round(360/ (places.length*user_count +2));
 }
@@ -180,16 +211,21 @@ function get_data(){
   lines = data.split ("\n");
   console.log (data);
   user_count = lines.length;
+  if (visible_users.length >0) {
+	user_count = visible_users.length;
+  }
   $.each (lines, function () {
 	if (this.length >10) {
 		var line = this.split (" | ");		
 		var user = line[0].split("/") [1];
-		var location =JSON.parse(line[1]);
-		current[user] = location;
-		var user_object = get_user (user);
-		user_object.position =get_degrees (user)+ user_object.offset*offset_size ();
-		if (user_object.position <0) {
-			user_object.position = user_object.position +360;
+		if (check_user_display (user)) {
+			var location =JSON.parse(line[1]);
+			current[user] = location;
+			var user_object = get_user (user);
+			user_object.position =get_degrees (user)+ user_object.offset*offset_size ();
+			if (user_object.position <0) {
+				user_object.position = user_object.position +360;
+			}
 		}
 	}
   });
@@ -200,6 +236,7 @@ function get_data(){
   }
   
 function get_degrees (user) {
+	var places = static_places.concat(dynamic_places);
 	var place = current [user] ["desc"];
 	if (current [user] ["event"] == "enter" ) {
 		for (var index in places) {
@@ -209,11 +246,16 @@ function get_degrees (user) {
 				}
 			}
 		}
+		var new_place = [place];
+		dynamic_places.push(new_place);
+		if (dynamic_places.length > maximum_dynamic_places) {
+			dynamic_places.shift();
+		}
+		places = static_places.concat(dynamic_places);
+		return (places.length-1)*360/(places.length);
 	}
 	return 0;
-	var new_place = [place];
-	places.push(new_place);
-	return get_degrees (user);
+	
 }	
 		
 clockApp();
