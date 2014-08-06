@@ -11,7 +11,7 @@
 <script>
 /* Configuration starts here */
 //The places array is the list of the places to be displayed on the clock. Each place is defined by its own list. The first entry in this list is the name displayed on the clock, and optional subsequent entries are synonyms that can be used for matching waypoint names.
-var static_places = [["Forsvunnet", "lost"], ["Holt"],  ["Leirsund", "Marianne"],  ["Tunnelltoppen", "Merethe"],  ["Butikken", "store","butikk"],["Mortal peril", "mortal", "peril"], ["Jobb", "work"], ["Skole", "school"]];//, ["Trener", "endomondo"], ["Kjører", "driving"]];
+var static_places = [["Forsvunnet", "lost"], ["Holt"],  ["Leirsund", "Marianne"],  ["Tunneltoppen"],  ["Butikken", "store","butikk"],["Mortal peril", "mortal", "peril"], ["Jobb", "work"], ["Skole", "school"]];//, ["Trener", "endomondo"], ["Kjører", "driving"]];
 var dynamic_places = [];
 var offset_count = 1;
 var hand_length = 250;
@@ -21,6 +21,7 @@ var maximum_dynamic_places = maximum_places- static_places.length;
 var data_file = "current_raw.html";
 var current = {};
 var user_count = 0;
+var sector_count = new Array(maximum_places);
 configuration = {}
 //A user configuration can be either specified manually as below, or automatically when new users are detected from the input data file.
 configuration ["kolaf"] = new user_configuration ("red");
@@ -58,6 +59,13 @@ function get_visible_users() {
 }
 
 
+function reset_sector_count() {
+	for (var i= 0;i <maximum_places;i++) {
+		sector_count[i] = 0;
+	}
+}
+
+
 function sector (number) {
 	return sector_size*number - sector_start;
 }
@@ -67,6 +75,8 @@ function user_configuration (colour) {
 	this.offset = offset_count;
 	offset_count = offset_count +1;
 	this.position = 0;
+	this.sector = 0;
+	this.sector_position = 0;
 	this.current_position = 0;
 }	
 	
@@ -141,8 +151,9 @@ function animate (user) {
 	var animated = false;
 	for 	(user in current) {
 		var user_object = configuration [user];
-		var target =Math.round (user_object.position );
-//		console.log ("current user is " + user + " current position is " + user_object.current_position + " target position is " +  target);
+		user_object.position = calculate_position (user);
+		var target =Math.round (user_object.position);
+		//console.log ("current user is " + user + " current position is " + user_object.current_position + " target position is " +  target);
 		if (user_object.current_position!= Math.round (user_object.position)) {
 			if ((target - user_object.current_position + 360) % 360 < 180){
 				user_object.current_position = user_object.current_position +1;
@@ -207,6 +218,7 @@ function clockApp(){
 
 
 function get_data(){
+  reset_sector_count();
   $.get(data_file,function(data,status){
   lines = data.split ("\n");
   console.log (data);
@@ -223,6 +235,11 @@ function get_data(){
 			current[user] = location;
 			var user_object = get_user (user);
 			user_object.position =get_degrees (user)+ user_object.offset*offset_size ();
+			user_object.sector = get_sector(user);
+			
+			sector_count [user_object.sector]=sector_count [user_object.sector] +1;
+			user_object.sector_position =sector_count [user_object.sector];
+			
 			if (user_object.position <0) {
 				user_object.position = user_object.position +360;
 			}
@@ -235,6 +252,36 @@ function get_data(){
   });
   }
   
+
+function calculate_position (user) {
+	var user_object = get_user (user);
+	var places = static_places.concat (dynamic_places);
+	//console.log ("user " + user + " sector is " + user_object.sector + " sector_count = " + sector_count [user_object.sector]+ " user sector position is " + user_object.sector_position);
+	return (360/places.length)*(user_object.sector_position)/(sector_count [user_object.sector]+1) +user_object.sector*360/places.length;
+}
+  
+function get_sector (user) {
+	var places = static_places.concat(dynamic_places);
+	var place = current [user] ["desc"];
+	if (current [user] ["event"] == "enter" ) {
+		for (var index in places) {
+			for(var synonyms in places [index]) {
+				if (place.toLowerCase().indexOf (places[index][synonyms].toLowerCase())>=0) {
+					return  index;				}
+			}
+		}
+		var new_place = [place];
+		dynamic_places.push(new_place);
+		if (dynamic_places.length > maximum_dynamic_places) {
+			dynamic_places.shift();
+		}
+		places = static_places.concat(dynamic_places);
+		return (places.length-1)
+	}
+	return 0;
+}
+
+
 function get_degrees (user) {
 	var places = static_places.concat(dynamic_places);
 	var place = current [user] ["desc"];
