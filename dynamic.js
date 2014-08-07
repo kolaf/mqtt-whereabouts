@@ -20,6 +20,7 @@ configuration ["villemy"] = new user_configuration ("purple");
 $.ajaxSetup({ cache: false });
 var canvas;
 var context;
+var first_time = true;
 $.urlParam = function(name){
     var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
     if (results==null){
@@ -235,8 +236,12 @@ function get_data(){
 		}
 	}
   });
-    
-	animate();
+    if (first_time) {
+		first_time = false;
+		createClock();
+	} else {
+		animate();
+	}
   
   });
   }
