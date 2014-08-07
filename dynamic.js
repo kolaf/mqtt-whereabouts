@@ -1,3 +1,14 @@
+$.urlParam = function(name){
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results==null){
+       return null;
+    }
+    else{
+       return decodeURIComponent(results[1]) || 0;
+    }
+}
+
+
 /* Configuration starts here */
 //The places array is the list of the places to be displayed on the clock. Each place is defined by its own list. The first entry in this list is the name displayed on the clock, and optional subsequent entries are synonyms that can be used for matching waypoint names.
 var static_places = [["Forsvunnet", "lost"], ["Holt"],  ["Leirsund", "Marianne"],  ["Tunneltoppen"],  ["Butikken", "store","butikk"],["Mortal peril", "mortal", "peril"], ["Jobb", "work"], ["Skole", "school"]];//, ["Trener", "endomondo"], ["Kjører", "driving"]];
@@ -6,8 +17,9 @@ var dynamic_places = [];
 var offset_count = 1;
 var hand_length = 250;
 var clock_radius = 220;
-var maximum_places = 8;
-var maximum_dynamic_places = maximum_places- static_places.length;
+var maximum_places = get_maximum_sectors (8);
+
+var maximum_dynamic_places = maximum_places;
 var data_file = "current_raw.html";
 var current = {};
 var user_count = 0;
@@ -22,15 +34,6 @@ $.ajaxSetup({ cache: false });
 var canvas;
 var context;
 var first_time = true;
-$.urlParam = function(name){
-    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-    if (results==null){
-       return null;
-    }
-    else{
-       return decodeURIComponent(results[1]) || 0;
-    }
-}
 var visible_users = get_visible_users();
 
 function check_user_display (user) {
@@ -47,6 +50,15 @@ function get_visible_users() {
 		return return_list;
 	}
 	return [];
+}
+
+function get_maximum_sectors(fallback) {
+	var user_string =$.urlParam("sectors");
+	console.log (user_string);
+	if (user_string) {
+		return parseInt (user_string);
+	}
+	return fallback;
 }
 
 
@@ -254,6 +266,9 @@ function initialise_places () {
 		dynamic_places.push (["..........."]);
 	}
 	for(var index  = 0; index < prepopulated_places.length; index++) {
+		if (dynamic_places.length >= maximum_places) {
+			return;
+		}
 		dynamic_places.push (prepopulated_places [index]);
 	}
 }
