@@ -5,7 +5,7 @@ var dynamic_places = [];
 var offset_count = 1;
 var hand_length = 250;
 var clock_radius = 220;
-var maximum_places = 12;
+var maximum_places = 8;
 var maximum_dynamic_places = maximum_places- static_places.length;
 var data_file = "current_raw.html";
 var current = {};
@@ -72,7 +72,7 @@ function user_configuration (colour) {
 function draw_face() {
 	context.clearRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height);
 	var index = 0;
-	var places = static_places.concat (dynamic_places);
+	var places = dynamic_places;//static_places.concat (dynamic_places);
 	for(index in places) {
 		context.save();
 		context.translate(0, 0);
@@ -242,9 +242,17 @@ function get_data(){
   }
   
 
+function initialise_places () {
+	dynamic_places [0] = ["Forsvunnet", "lost"];
+	for(var index  = 1; index < maximum_places; index++) {
+		dynamic_places [index] = ["..........."];
+	}
+}
+  
+  
 function calculate_position (user) {
 	var user_object = get_user (user);
-	var places = static_places.concat (dynamic_places);
+	var places = dynamic_places;//static_places.concat (dynamic_places);
 	//console.log ("user " + user + " sector is " + user_object.sector + " sector_count = " + sector_count [user_object.sector]+ " user sector position is " + user_object.sector_position);
 	return (360/places.length)*(user_object.sector_position)/(sector_count [user_object.sector]+1) +user_object.sector*360/places.length;
 }
@@ -253,19 +261,31 @@ function get_sector (user) {
 	var places = static_places.concat(dynamic_places);
 	var place = current [user] ["desc"];
 	if (current [user] ["event"] == "enter" ) {
-		for (var index in places) {
-			for(var synonyms in places [index]) {
-				if (place.toLowerCase().indexOf (places[index][synonyms].toLowerCase())>=0) {
-					return  index;				}
+		for (var index in dynamic_places) {
+			for(var synonyms in dynamic_places [index]) {
+				if (place.toLowerCase().indexOf (dynamic_places[index][synonyms].toLowerCase())>=0) {
+					return  index;		
+				}
+			}
+		}
+		for (var index in static_places) {
+			for(var synonyms in static_places [index]) {
+				if (place.toLowerCase().indexOf (static_places[index][synonyms].toLowerCase())>=0) {
+					dynamic_places.push (static_places [index])
+					if (dynamic_places.length > maximum_dynamic_places) {
+						dynamic_places.splice (1, 1);
+					}	
+					return  dynamic_places.length -1;		
+				}
 			}
 		}
 		var new_place = [place];
 		dynamic_places.push(new_place);
 		if (dynamic_places.length > maximum_dynamic_places) {
-			dynamic_places.shift();
+			dynamic_places.splice (1, 1);
 		}
 		places = static_places.concat(dynamic_places);
-		return (places.length-1)
+		return (dynamic_places.length-1)
 	}
 	return 0;
 }
@@ -298,6 +318,7 @@ function get_degrees (user) {
 $(function(){
 	canvas = document.getElementById('myCanvas');
 	context = canvas.getContext('2d');
+	initialise_places ();
 	clockApp();
 });		
 	
