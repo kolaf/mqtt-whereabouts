@@ -1,6 +1,7 @@
 /* Configuration starts here */
 //The places array is the list of the places to be displayed on the clock. Each place is defined by its own list. The first entry in this list is the name displayed on the clock, and optional subsequent entries are synonyms that can be used for matching waypoint names.
 var static_places = [["Forsvunnet", "lost"], ["Holt"],  ["Leirsund", "Marianne"],  ["Tunneltoppen"],  ["Butikken", "store","butikk"],["Mortal peril", "mortal", "peril"], ["Jobb", "work"], ["Skole", "school"]];//, ["Trener", "endomondo"], ["Kjører", "driving"]];
+var prepopulated_places = [["Butikken", "store","butikk"],["Mortal peril", "mortal", "peril"], ["Jobb", "work"], ["Skole", "school"],["Holt"],  ["Leirsund", "Marianne"],  ["Tunneltoppen"]];
 var dynamic_places = [];
 var offset_count = 1;
 var hand_length = 250;
@@ -206,17 +207,9 @@ function clockApp(){
   setInterval('createClock()', 30000)
 }
 
-
-function get_data(){
-  reset_sector_count();
-  $.get(data_file,function(data,status){
-  lines = data.split ("\n");
-  console.log (data);
-  user_count = lines.length;
-  if (visible_users.length >0) {
-	user_count = visible_users.length;
-  }
-  $.each (lines, function () {
+function  set_positions (lines) {
+	reset_sector_count();
+	$.each (lines, function () {
 	if (this.length >10) {
 		var line = this.split (" | ");		
 		var user = line[0].split("/") [1];
@@ -224,9 +217,9 @@ function get_data(){
 			var location =JSON.parse(line[1]);
 			current[user] = location;
 			var user_object = get_user (user);
-			user_object.position =get_degrees (user)+ user_object.offset*offset_size ();
+			//user_object.position =get_degrees (user)+ user_object.offset*offset_size ();
 			user_object.sector = get_sector(user);
-			
+			console.log ("User " + user + " as sector " + user_object.sector);
 			sector_count [user_object.sector]=sector_count [user_object.sector] +1;
 			user_object.sector_position =sector_count [user_object.sector];
 			
@@ -236,21 +229,38 @@ function get_data(){
 		}
 	}
   });
-    if (first_time) {
-		first_time = false;
-		createClock();
-	} else {
-		animate();
-	}
+}
+
+function get_data(){
   
+  $.get(data_file,function(data,status){
+  lines = data.split ("\n");
+  console.log (data);
+  user_count = lines.length;
+  if (visible_users.length >0) {
+	user_count = visible_users.length;
+  }
+  set_positions (lines);
+  console.log (dynamic_places);
+  set_positions (lines);
+  animate();
+	
   });
   }
   
-
 function initialise_places () {
 	dynamic_places [0] = ["Forsvunnet", "lost"];
-	for(var index  = 1; index < maximum_places; index++) {
-		dynamic_places [index] = ["..........."];
+	for(var index  = 0; index < maximum_places- prepopulated_places.length-1; index++) {
+		dynamic_places.push (["..........."]);
+	}
+	for(var index  = 0; index < prepopulated_places.length; index++) {
+		dynamic_places.push (prepopulated_places [index]);
+	}
+}
+
+function dump_places () {
+	for (var place in dynamic_places) {
+		console.log  (dynamic_places [place]);
 	}
 }
   
@@ -264,11 +274,13 @@ function calculate_position (user) {
   
 function get_sector (user) {
 	var places = static_places.concat(dynamic_places);
+	dump_places ();
 	var place = current [user] ["desc"];
 	if (current [user] ["event"] == "enter" ) {
 		for (var index in dynamic_places) {
 			for(var synonyms in dynamic_places [index]) {
 				if (place.toLowerCase().indexOf (dynamic_places[index][synonyms].toLowerCase())>=0) {
+					console.log ("Returning existing sector " + index);
 					return  index;		
 				}
 			}
@@ -277,7 +289,9 @@ function get_sector (user) {
 			for(var synonyms in static_places [index]) {
 				if (place.toLowerCase().indexOf (static_places[index][synonyms].toLowerCase())>=0) {
 					dynamic_places.push (static_places [index])
+					console.log ("returning new static sector " +  (dynamic_places.length -1));
 					if (dynamic_places.length > maximum_dynamic_places) {
+						console.log ("Removing entry");
 						dynamic_places.splice (1, 1);
 					}	
 					return  dynamic_places.length -1;		
@@ -286,7 +300,9 @@ function get_sector (user) {
 		}
 		var new_place = [place];
 		dynamic_places.push(new_place);
+		console.log ("returning new dynamic sector " +  (dynamic_places.length -1));
 		if (dynamic_places.length > maximum_dynamic_places) {
+			console.log ("Removing entry");
 			dynamic_places.splice (1, 1);
 		}
 		places = static_places.concat(dynamic_places);
