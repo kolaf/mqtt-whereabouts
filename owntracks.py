@@ -75,11 +75,16 @@ def save_waypoints():
 	waypoints_file.close()
 	
 def load_waypoints():
+	global waypoints
+	waypoints = []
 	if not os.path.exists("waypoints.txt"):
+		print "Failed to load waypoints"
 		return
 	with open ("waypoints.txt", "r") as input:
 		for line in input:
 			waypoints.append (json.loads (line))
+		print "Loaded waypoints!"
+	
 	
 
 current = {}
@@ -99,6 +104,8 @@ def on_message(client, userdata, msg):
 	if len(msg.payload) >0:
 		decoded = json.loads(msg.payload)
 		if decoded["_type"] == "waypoint":
+			print "Reloading waypoints"
+			load_waypoints()
 			root, user, device, type = msg.topic.split('/')
 			print "detected waypoint"
 			decoded["owner"] = user
@@ -108,6 +115,9 @@ def on_message(client, userdata, msg):
 		
 	if decoded['_type'] == "location":
 		root, user, device = msg.topic.split('/')
+		print "Reloading waypoints"
+		load_waypoints()
+		# Adds waypoint to the incoming message if a match is found.
 		decoded = in_range(decoded)
 		if "event" in decoded:
 			current[user] = decoded
@@ -151,7 +161,6 @@ def dump_raw():
 	page.close()
 
 load_waypoints()
-print "Loaded waypoints..."
 print waypoints		
 client = mqtt.Client( protocol=mqtt.MQTTv31)
 client.on_connect = on_connect
