@@ -36,6 +36,14 @@ var context;
 var first_time = true;
 var visible_users = get_visible_users();
 
+ticSound = new Audio('clock.ogg'); 
+ticSound.addEventListener('ended', function() {
+    this.currentTime = 0;
+    this.play();
+}, false);
+
+
+
 function check_user_display (user) {
 	if (visible_users.length == 0) {
 		return true;
@@ -89,7 +97,7 @@ function user_configuration (name,colour) {
 function ClockPlace(name, synonyms) {
 	this.name = name;
 	this.synonyms = synonyms;
-	this.number_occupied = 1;
+	this.number_occupied = 0;
 	this.added = Date.now();
 	this.add_user  = function () {
 		this.added = Date.now ();
@@ -185,7 +193,7 @@ function drawUserHand(user){
   context.restore();
 }
 
-
+var started_animating = false;
 function animate (user) {
 //	addBackgroundImage ();
 	draw_face();
@@ -220,7 +228,16 @@ function animate (user) {
 		drawUserHand(user);
 	}
 	if (animated) {
+		if (!started_animating) {
+			ticSound.play();
+			started_animating = true;
+			
+		}
 		setTimeout(function() { animate();}, 80);
+	}else {
+		started_animating = false;
+		ticSound.pause();
+		ticSound.currentTime = 0;
 	}
 	
 }
@@ -293,7 +310,7 @@ function  set_positions (lines, add) {
 			var user_object = get_user (user);
 			user_object.sector = get_sector(user, add);
 			
-			user_object.sector_position =dynamic_places[user_object.sector].number_occupied;
+			user_object.sector_position =dynamic_places[user_object.sector].add_user();
 			// console.log ("User " + user + " as sector " + user_object.sector + " with sector possession " + user_object.sector_position);
 		}
 	}
@@ -352,7 +369,6 @@ function get_sector (user, add) {
 		for (var index in dynamic_places) {
 			for(var synonym in dynamic_places [index].synonyms) {
 				if (place.toLowerCase().indexOf (dynamic_places[index].synonyms[synonym].toLowerCase())>=0) {
-					dynamic_places[index].add_user();
 					// console.log ("Returning existing sector " + index);
 					return  index;		
 				}
