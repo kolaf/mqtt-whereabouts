@@ -11,6 +11,7 @@ $.urlParam = function(name){
 
 /* Configuration starts here */
 //The places array is the list of the places to be displayed on the clock. Each place is defined by its own list. The first entry in this list is the name displayed on the clock, and optional subsequent entries are synonyms that can be used for matching waypoint names.
+var colours = "red, blue, green, orange, black, purple, fuchsia, maroon, navy, olive, teal, silver, teal, gray, yellow, lime".split(", ");
 var static_places = [["Forsvunnet", "lost"], ["Holt"],  ["Leirsund", "Marianne"],  ["Tunneltoppen"],  ["Butikken", "store","butikk"],["Mortal peril", "mortal", "peril"], ["Jobb", "work"], ["Skole", "school"]];//, ["Trener", "endomondo"], ["Kjører", "driving"]];
 var prepopulated_places = [["Butikken", "store","butikk"],["Mortal peril", "mortal", "peril"], ["Jobb", "work"], ["Skole", "school"],["Holt"],  ["Leirsund", "Marianne"],  ["Tunneltoppen"]];
 var dynamic_places = [];
@@ -23,11 +24,10 @@ var maximum_dynamic_places = maximum_places;
 var data_file = "current_raw.html";
 var current = {};
 var user_count = 0;
-var sector_count = new Array(maximum_places);
 configuration = {}
 //A user configuration can be either specified manually as below, or automatically when new users are detected from the input data file.
-configuration ["kolaf"] = new user_configuration ("red");
-configuration ["villemy"] = new user_configuration ("purple");
+//configuration ["kolaf"] = new user_configuration ("red");
+//configuration ["villemy"] = new user_configuration ("purple");
 /* Configuration ends here */
 
 $.ajaxSetup({ cache: false });
@@ -54,7 +54,7 @@ function get_visible_users() {
 
 function get_maximum_sectors(fallback) {
 	var user_string =$.urlParam("sectors");
-	console.log (user_string);
+	// console.log (user_string);
 	if (user_string) {
 		return parseInt (user_string);
 	}
@@ -63,8 +63,8 @@ function get_maximum_sectors(fallback) {
 
 
 function reset_sector_count() {
-	for (var i= 0;i <maximum_places;i++) {
-		sector_count[i] = 0;
+	for (var i in dynamic_places) {
+		dynamic_places[i].number_occupied = 0;
 	}
 }
 
@@ -72,15 +72,57 @@ function reset_sector_count() {
 function sector (number) {
 	return sector_size*number - sector_start;
 }
-function user_configuration (colour) {
+function user_configuration (name,colour) {
 	this.colour = colour;
+	this.name = name;
 	this.width = 5+parseInt(Math.random() *10, 10);
 	this.offset = offset_count;
 	offset_count = offset_count +1;
 	this.position = 0;
-	this.sector = 0;
 	this.sector_position = 0;
+	this.sector = 0;
 	this.current_position = 0;
+	this.speed=1;
+	this.real = true;
+}	
+
+function ClockPlace(name, synonyms) {
+	this.name = name;
+	this.synonyms = synonyms;
+	this.number_occupied = 1;
+	this.added = Date.now();
+	this.add_user  = function () {
+		this.added = Date.now ();
+		this.number_occupied = this.number_occupied +1;
+		return this;
+	}
+}	
+
+function remove_oldest_places() {
+	while (dynamic_places.length>maximum_places) {
+		console.log ("removing places...");
+		var smallest_index = 0;
+		var earliest_time = Date.now()+1000;
+		for  (var i in dynamic_places) {
+			if (dynamic_places[i].added<earliest_time) {
+				earliest_time = dynamic_places[i].added;
+				smallest_index =i;
+			}
+		}
+		console.log ("smallest  index is  " + smallest_index);
+		for (var user in  configuration ) {
+			if (configuration [user].sector==smallest_index) {
+				console.log ("  Removing user " + user + " ffrom sector  " +  smallest_index);
+				configuration [user].sector = 0;
+				configuration[user].real = false;
+				
+			}
+			if (configuration [user].sector >smallest_index) {
+				configuration [user].sector--;
+			}
+		}
+		dynamic_places.splice (smallest_index, 1);
+	}
 }	
 	
 function draw_face() {
@@ -92,7 +134,7 @@ function draw_face() {
 		context.translate(0, 0);
 		context.rotate(degreesToRadians ( index*360/places.length + 0.5*360/places.length));
 		context.translate (clock_radius, 0);
-		context.fillText(places [index][0], -3, 0);
+		context.fillText(places [index].name, -3, 0);
 		context.restore();
 		context.save();
 		context.beginPath();
@@ -114,14 +156,9 @@ function draw_face() {
 function degreesToRadians(degrees) {
   return (Math.PI / 180) * degrees
 }
-function offset_size () {
-
-	var places = static_places.concat (dynamic_places);
-//	return Math.round(360/ (places.length*Object.keys (configuration).length +2));
-	return Math.round(360/ (places.length*user_count +2));
-}
 
 function getRandomColour() {
+	return colours.shift();
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';
     for (var i = 0; i < 6; i++ ) {
@@ -134,7 +171,7 @@ function get_user (user) {
 	if (user in configuration) {
 		return configuration [user];;
 	}
-	configuration [user] = new user_configuration(getRandomColour ());
+	configuration [user] = new user_configuration(user,getRandomColour ());
 	return configuration [user];
 }
 
@@ -152,16 +189,20 @@ function animate (user) {
 //	addBackgroundImage ();
 	draw_face();
 	var animated = false;
-	for 	(user in current) {
-		var user_object = configuration [user];
+	var keys =Object.keys(current).sort();
+	for 	(k in keys) {
+		var  user =keys [k];
+		var user_object = configuration[user];
 		user_object.position = calculate_position (user);
-		var target =Math.round (user_object.position);
+		var target =user_object.position;
 		//console.log ("current user is " + user + " current position is " + user_object.current_position + " target position is " +  target);
-		if (user_object.current_position!= Math.round (user_object.position)) {
+		if (Math.round (user_object.current_position)!= Math.round (user_object.position)) {
+			var dist=getShortAngle(user_object.current_position, target);
+//			console.log("User "+ current[user] +" dist is "+dist);
 			if ((target - user_object.current_position + 360) % 360 < 180){
-				user_object.current_position = user_object.current_position +1;
+				user_object.current_position = user_object.current_position +0.9+dist/180;
 			} else {
-				user_object.current_position = user_object.current_position -1;				
+				user_object.current_position = user_object.current_position -0.9-dist/180;				
 			}
 			user_object.current_position = user_object.current_position % 360;
 			
@@ -178,10 +219,28 @@ function animate (user) {
 		drawUserHand(user);
 	}
 	if (animated) {
-		setTimeout(function() { animate();}, 100);
+		setTimeout(function() { animate();}, 80);
 	}
 	
 }
+
+function getShortAngle(a1, a2)
+
+{
+
+    var angle = (Math.abs(a1 - a2))%360;
+
+	
+
+    if(angle > 180)
+
+        angle = 360 - angle;
+
+		
+
+    return angle;
+
+};
 
 function drawHand(colour,size, thickness, shadowOffset, user){
 	thickness = thickness || 4;
@@ -194,14 +253,16 @@ function drawHand(colour,size, thickness, shadowOffset, user){
 	context.strokeStyle =  colour;
 	var text_size = context.measureText  (user);
 	context.fillText(user, (size - text_size.width)/2,10);
-	context.beginPath();
-	context.moveTo(0,0); // center
-	context.lineTo(-10,thickness *-1);
-	context.lineTo( size * 1,0);
-	context.lineTo(-10,thickness);
-	context.lineTo(0,0);
-	//context.fill();
-	context.stroke();
+	if (get_user (user).real) {
+		context.beginPath();
+		context.moveTo(0,0); // center
+		context.lineTo(-10,thickness *-1);
+		context.lineTo( size * 1,0);
+		context.lineTo(-10,thickness);
+		context.lineTo(0,0);
+		//context.fill();
+		context.stroke();
+	}
 }
 
 function createClock(){
@@ -219,7 +280,7 @@ function clockApp(){
   setInterval('createClock()', 30000)
 }
 
-function  set_positions (lines) {
+function  set_positions (lines, add) {
 	reset_sector_count();
 	$.each (lines, function () {
 	if (this.length >10) {
@@ -229,15 +290,10 @@ function  set_positions (lines) {
 			var location =JSON.parse(line[1]);
 			current[user] = location;
 			var user_object = get_user (user);
-			//user_object.position =get_degrees (user)+ user_object.offset*offset_size ();
-			user_object.sector = get_sector(user);
-			console.log ("User " + user + " as sector " + user_object.sector);
-			sector_count [user_object.sector]=sector_count [user_object.sector] +1;
-			user_object.sector_position =sector_count [user_object.sector];
+			user_object.sector = get_sector(user, add);
 			
-			if (user_object.position <0) {
-				user_object.position = user_object.position +360;
-			}
+			user_object.sector_position =dynamic_places[user_object.sector].number_occupied;
+			// console.log ("User " + user + " as sector " + user_object.sector + " with sector possession " + user_object.sector_position);
 		}
 	}
   });
@@ -252,24 +308,24 @@ function get_data(){
   if (visible_users.length >0) {
 	user_count = visible_users.length;
   }
-  set_positions (lines);
+  set_positions (lines, true);
+  remove_oldest_places();
   console.log (dynamic_places);
-  set_positions (lines);
   animate();
 	
   });
   }
   
 function initialise_places () {
-	dynamic_places [0] = ["Forsvunnet", "lost"];
+	dynamic_places [0] =new ClockPlace ("Forsvunnet",["Forsvunnet", "lost"]);
 	for(var index  = 0; index < maximum_places- prepopulated_places.length-1; index++) {
-		dynamic_places.push (["..........."]);
+		dynamic_places.push (new  ClockPlace("...........",["..........."]));
 	}
 	for(var index  = 0; index < prepopulated_places.length; index++) {
 		if (dynamic_places.length >= maximum_places) {
 			return;
 		}
-		dynamic_places.push (prepopulated_places [index]);
+		dynamic_places.push (new ClockPlace(prepopulated_places [index][0],prepopulated_places [index]));
 	}
 }
 
@@ -282,20 +338,21 @@ function dump_places () {
   
 function calculate_position (user) {
 	var user_object = get_user (user);
-	var places = dynamic_places;//static_places.concat (dynamic_places);
-	//console.log ("user " + user + " sector is " + user_object.sector + " sector_count = " + sector_count [user_object.sector]+ " user sector position is " + user_object.sector_position);
-	return (360/places.length)*(user_object.sector_position)/(sector_count [user_object.sector]+1) +user_object.sector*360/places.length;
+	// console.log  ("sector = " + user_object.sector);
+	// console.log ("user " + user + " sector is " + user_object.sector + " sector_count = " + dynamic_places[user_object.sector].number_occupied+ " user sector position is " + user_object.sector_position);
+	return (360/dynamic_places.length)*(user_object.sector_position)/(dynamic_places[user_object.sector].number_occupied+1) +user_object.sector*360/dynamic_places.length;
 }
   
-function get_sector (user) {
-	var places = static_places.concat(dynamic_places);
-	dump_places ();
+function get_sector (user, add) {
+	get_user(user).real =  true;
+	// dump_places ();
 	var place = current [user] ["desc"];
 	if (current [user] ["event"] == "enter" ) {
 		for (var index in dynamic_places) {
-			for(var synonyms in dynamic_places [index]) {
-				if (place.toLowerCase().indexOf (dynamic_places[index][synonyms].toLowerCase())>=0) {
-					console.log ("Returning existing sector " + index);
+			for(var synonym in dynamic_places [index].synonyms) {
+				if (place.toLowerCase().indexOf (dynamic_places[index].synonyms[synonym].toLowerCase())>=0) {
+					dynamic_places[index].add_user();
+					// console.log ("Returning existing sector " + index);
 					return  index;		
 				}
 			}
@@ -303,53 +360,21 @@ function get_sector (user) {
 		for (var index in static_places) {
 			for(var synonyms in static_places [index]) {
 				if (place.toLowerCase().indexOf (static_places[index][synonyms].toLowerCase())>=0) {
-					dynamic_places.push (static_places [index])
-					console.log ("returning new static sector " +  (dynamic_places.length -1));
-					if (dynamic_places.length > maximum_dynamic_places) {
-						console.log ("Removing entry");
-						dynamic_places.splice (1, 1);
-					}	
+					dynamic_places.push (new ClockPlace (static_places [index][0],static_places [index][1]));
+					// console.log ("returning new static sector " +  (dynamic_places.length -1));
 					return  dynamic_places.length -1;		
 				}
 			}
 		}
-		var new_place = [place];
+		var new_place = new ClockPlace(place,[place]);
+		
+		// console.log ("Adding new place "  + new_place);
 		dynamic_places.push(new_place);
-		console.log ("returning new dynamic sector " +  (dynamic_places.length -1));
-		if (dynamic_places.length > maximum_dynamic_places) {
-			console.log ("Removing entry");
-			dynamic_places.splice (1, 1);
-		}
-		places = static_places.concat(dynamic_places);
 		return (dynamic_places.length-1)
 	}
 	return 0;
 }
 
-
-function get_degrees (user) {
-	var places = static_places.concat(dynamic_places);
-	var place = current [user] ["desc"];
-	if (current [user] ["event"] == "enter" ) {
-		for (var index in places) {
-			for(var synonyms in places [index]) {
-				if (place.toLowerCase().indexOf (places[index][synonyms].toLowerCase())>=0) {
-					return  index*360/places.length;
-				}
-			}
-		}
-		var new_place = [place];
-		dynamic_places.push(new_place);
-		if (dynamic_places.length > maximum_dynamic_places) {
-			dynamic_places.shift();
-		}
-		places = static_places.concat(dynamic_places);
-		return (places.length-1)*360/(places.length);
-	}
-	return 0;
-	
-}	
-		
 
 $(function(){
 	canvas = document.getElementById('myCanvas');
@@ -358,4 +383,24 @@ $(function(){
 	clockApp();
 });		
 	
-  
+$(document).ready( function(){
+  		
+  		//Get the canvas & context
+  		var c = $('#myCanvas');
+  		var ct = c.get(0).getContext('2d');
+  		var container = $(c).parent();
+  		
+  		//Run function when browser  resize
+	  	//$(window).resize( respondCanvas );
+	  	
+	  	function respondCanvas(){
+  			c.attr('width', $(container).width() ); //max width
+  			c.attr('height', $(container).height() ); //max height
+  			
+  			//Redraw & reposition content
+  			createClock();
+		}
+		
+		//Initial call
+		//respondCanvas();
+  	});	

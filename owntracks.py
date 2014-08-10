@@ -122,7 +122,7 @@ def on_message(client, userdata, msg):
 		if "event" in decoded:
 			current[user] = decoded
 			current_raw[msg.topic] = decoded
-			create_page()
+			#create_page()
 			dump_raw ()
 		time = datetime.datetime.fromtimestamp(
         int(decoded ['tst'])
@@ -150,7 +150,7 @@ def create_page():
 		time = datetime.datetime.fromtimestamp(
         int(details ['tst'])
 		).strftime('%Y-%m-%d %H:%M:%S')
-		page.write (time + " - " + user + " has " + event + " " + location + " with battery " + battery +"<br>\n")
+		page.write (time + " - " + user + " has " + event + " " + location.encode ('utf-8') + " with battery " + battery +"<br>\n")
 	page.write (" </body></HTML>")
 	page.close()
 		
