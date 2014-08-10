@@ -361,7 +361,7 @@ function get_sector (user, add) {
 		for (var index in static_places) {
 			for(var synonyms in static_places [index]) {
 				if (place.toLowerCase().indexOf (static_places[index][synonyms].toLowerCase())>=0) {
-					dynamic_places.push (new ClockPlace (static_places [index][0],static_places [index][1]));
+					dynamic_places.push (new ClockPlace (static_places [index][0],static_places [index]));
 					// console.log ("returning new static sector " +  (dynamic_places.length -1));
 					return  dynamic_places.length -1;		
 				}
