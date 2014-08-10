@@ -94,7 +94,7 @@ function ClockPlace(name, synonyms) {
 	this.add_user  = function () {
 		this.added = Date.now ();
 		this.number_occupied = this.number_occupied +1;
-		return this;
+		return this.number_occupied;
 	}
 }	
 
@@ -104,7 +104,7 @@ function remove_oldest_places() {
 		var smallest_index = 0;
 		var earliest_time = Date.now()+1000;
 		for  (var i in dynamic_places) {
-			if (dynamic_places[i].added<earliest_time) {
+			if (dynamic_places[i].added<earliest_time && i  >0) {
 				earliest_time = dynamic_places[i].added;
 				smallest_index =i;
 			}
@@ -114,6 +114,7 @@ function remove_oldest_places() {
 			if (configuration [user].sector==smallest_index) {
 				console.log ("  Removing user " + user + " ffrom sector  " +  smallest_index);
 				configuration [user].sector = 0;
+				configuration [user].sector_position=dynamic_places[0].add_user();
 				configuration[user].real = false;
 				
 			}
