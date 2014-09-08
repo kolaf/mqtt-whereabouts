@@ -60,6 +60,32 @@ function get_visible_users() {
 	return [];
 }
 
+function get_background() {
+	var user_string =$.urlParam("bgimg");
+	if (user_string=="none") {
+		return "";
+	} else if (user_string){
+		return user_string;
+	}
+	return "pony.png";
+}
+
+function get_sound() {
+	var user_string =$.urlParam("sound");
+	if (user_string=="0") {
+		return false;
+	} else {
+		return  true ;
+	}
+}
+
+var clockImage = new Image();
+var clockImageLoaded = false;
+clockImage.onload = function(){
+  clockImageLoaded = true;
+}
+clockImage.src = get_background();
+
 function get_maximum_sectors(fallback) {
 	var user_string =$.urlParam("sectors");
 	// console.log (user_string);
@@ -89,12 +115,13 @@ function user_configuration (name,colour) {
 	this.position = 0;
 	this.sector_position = 0;
 	this.sector = 0;
+	this.timestamp = 0;
 	this.current_position = 0;
 	this.speed=1;
 	this.real = true;
 }	
 
-function ClockPlace(name, synonyms) {
+function ClockPlace(name, synonyms, general) {
 	this.name = name;
 	this.synonyms = synonyms;
 	this.number_occupied = 0;
@@ -103,6 +130,9 @@ function ClockPlace(name, synonyms) {
 		this.added = Date.now ();
 		this.number_occupied = this.number_occupied +1;
 		return this.number_occupied;
+	}
+	this.general = function () {
+		return this.synonyms.length >0;
 	}
 }	
 
@@ -136,6 +166,9 @@ function remove_oldest_places() {
 	
 function draw_face() {
 	context.clearRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height);
+	if (clockImage.src.length>0) {
+		addBackgroundImage();
+	}
 	var index = 0;
 	var places = dynamic_places;//static_places.concat (dynamic_places);
 	for(index in places) {
@@ -159,8 +192,11 @@ function draw_face() {
 		context.restore();
 		index = index +1;
 	}
-}
 	
+}
+function addBackgroundImage(){
+  context.drawImage(clockImage, canvas.width/2 * -1 ,canvas.height/2 * -1,canvas.width, canvas.height);
+}
 
 function degreesToRadians(degrees) {
   return (Math.PI / 180) * degrees
@@ -261,13 +297,27 @@ function getShortAngle(a1, a2)
 };
 
 function drawHand(colour,size, thickness, shadowOffset, user){
+	var current_time =new Date().getTime()/1000;
+	var a   = 0.9
+	var user_time =get_user (user).timestamp;
 	thickness = thickness || 4;
 	context.shadowColor = '#555';
 	context.shadowBlur = 10;
 	context.shadowOffsetX = shadowOffset;
 	context.shadowOffsetY = shadowOffset;
 	context.fillStyle = colour;
-	context.globalAlpha = 0.5;
+	
+	
+	if (current_time - user_time > 3*60*60) {
+		a =1-(current_time - user_time +3*60*60)/(24*60*60);
+		if (a  <0.2) {
+			a  = 0.2;
+		}
+	}
+	
+	context.globalAlpha  = a;
+		
+	
 	context.strokeStyle =  colour;
 	var text_size = context.measureText  (user);
 	context.fillText(user, (size - text_size.width)/2,10);
@@ -309,7 +359,7 @@ function  set_positions (lines, add) {
 			current[user] = location;
 			var user_object = get_user (user);
 			user_object.sector = get_sector(user, add);
-			
+			user_object.timestamp=current[user]["tst"];
 			user_object.sector_position =dynamic_places[user_object.sector].add_user();
 			// console.log ("User " + user + " as sector " + user_object.sector + " with sector possession " + user_object.sector_position);
 		}
@@ -368,15 +418,40 @@ function get_sector (user, add) {
 	if (current [user] ["event"] == "enter" ) {
 		for (var index in dynamic_places) {
 			for(var synonym in dynamic_places [index].synonyms) {
-				if (place.toLowerCase().indexOf (dynamic_places[index].synonyms[synonym].toLowerCase())>=0) {
+				//var regex = new RegExp("\\b" +dynamic_places[index].synonyms[synonym].toLowerCase()+ "\\b");
+				//if (place.toLowerCase().search(regex) >-1) {
+				if (dynamic_places [index].general() && place.toLowerCase().indexOf (dynamic_places[index].synonyms[synonym].toLowerCase())>=0) {
+						// console.log ("Returning existing sector " + index);
+					return  index;		
+				}
+			}
+		}
+		for (var index in dynamic_places) {
+			for(var synonym in dynamic_places [index].synonyms) {
+				//var regex = new RegExp("\\b" +dynamic_places[index].synonyms[synonym].toLowerCase()+ "\\b");
+				//if (place.toLowerCase().search(regex) >-1) {
+				if (place.toLowerCase() === dynamic_places[index].synonyms[synonym].toLowerCase()) {
 					// console.log ("Returning existing sector " + index);
 					return  index;		
 				}
 			}
 		}
+		// for (var index in static_places) {
+			// for(var synonyms in static_places [index]) {
+				// if (static_places [index].length >1 && place.toLowerCase().indexOf (static_places[index][synonyms].toLowerCase())>=0) {
+				// //var regex = new RegExp("\\b" +static_places[index][synonyms].toLowerCase()+ "\\b");
+				// //if (place.toLowerCase().search(regex) >-1) {
+					// dynamic_places.push (new ClockPlace (static_places [index][0],static_places [index]));
+					// // console.log ("returning new static sector " +  (dynamic_places.length -1));
+					// return  dynamic_places.length -1;		
+				// }
+			// }
+		// }
 		for (var index in static_places) {
 			for(var synonyms in static_places [index]) {
-				if (place.toLowerCase().indexOf (static_places[index][synonyms].toLowerCase())>=0) {
+				if (place.toLowerCase() === static_places[index][synonyms].toLowerCase()) {
+				//var regex = new RegExp("\\b" +static_places[index][synonyms].toLowerCase()+ "\\b");
+				//if (place.toLowerCase().search(regex) >-1) {
 					dynamic_places.push (new ClockPlace (static_places [index][0],static_places [index]));
 					// console.log ("returning new static sector " +  (dynamic_places.length -1));
 					return  dynamic_places.length -1;		
