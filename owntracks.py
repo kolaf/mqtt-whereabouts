@@ -166,7 +166,7 @@ client = mqtt.Client( protocol=mqtt.MQTTv31)
 client.on_connect = on_connect
 client.on_message = on_message
 print "trying to connect..."
-client.connect("localhost", port=8883)
+client.connect("localhost", port=1883)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
