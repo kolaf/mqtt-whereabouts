@@ -16,8 +16,8 @@ var static_places = [["Forsvunnet", "lost"], ["Holt"],  ["Leirsund", "Marianne"]
 var prepopulated_places = [["Butikken", "store","butikk"],["Mortal peril", "mortal", "peril"], ["Jobb", "work"], ["Skole", "school"],["Holt"],  ["Leirsund", "Marianne"],  ["Tunneltoppen"]];
 var dynamic_places = [];
 var offset_count = 1;
-var hand_length = 250;
-var clock_radius = 220;
+var hand_length = 220;
+var clock_radius = 80;
 var maximum_places = get_maximum_sectors (8);
 
 var maximum_dynamic_places = maximum_places;
@@ -35,13 +35,13 @@ var canvas;
 var context;
 var first_time = true;
 var visible_users = get_visible_users();
-
+/*
 ticSound = new Audio('clock.ogg'); 
 ticSound.addEventListener('ended', function() {
     this.currentTime = 0;
     this.play();
 }, false);
-
+*/
 
 
 function check_user_display (user) {
@@ -175,7 +175,9 @@ function draw_face() {
 		context.save();
 		context.translate(0, 0);
 		context.rotate(degreesToRadians ( index*360/places.length + 0.5*360/places.length));
-		context.translate (clock_radius, 0);
+		var text_size = context.measureText(places[index].name);
+
+		context.translate (canvas.width/2- text_size.width-20, 0);
 		context.fillText(places [index].name, -3, 0);
 		context.restore();
 		context.save();
@@ -186,7 +188,7 @@ function draw_face() {
 		///context.translate(clock_radius, 0);
 		 
 		context.moveTo(0, 0);
-		context.lineTo(clock_radius+100, 0);
+		context.lineTo(canvas.width/2, 0);
 		context.stroke();
 		context.closePath();
 		context.restore();
@@ -265,15 +267,15 @@ function animate (user) {
 	}
 	if (animated) {
 		if (!started_animating) {
-			ticSound.play();
+			//ticSound.play();
 			started_animating = true;
 			
 		}
 		setTimeout(function() { animate();}, 80);
 	}else {
 		started_animating = false;
-		ticSound.pause();
-		ticSound.currentTime = 0;
+		//ticSound.pause();
+		//ticSound.currentTime = 0;
 	}
 	
 }
