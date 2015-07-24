@@ -44,6 +44,16 @@ body, html {
 	line-height: 100px;
 }
 
+.center-clock
+{
+	position: absolute;
+	top: 50%;
+	height: 600px;
+	margin-top: -300px;
+	line-height: 300px;
+}
+
+
 .lower-third
 {
 	position: absolute;
