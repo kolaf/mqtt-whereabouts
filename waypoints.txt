@@ -1,0 +1,14 @@
+{"_type": "waypoint", "lon": "11.3200239", "rad": "100.0", "lat": "60.3299332", "owner": "kolaf", "tst": "1406292867", "desc": "allmenningen, store "}
+{"_type": "waypoint", "lon": "11.2693517", "rad": "200.0", "lat": "60.3986899", "owner": "hufza", "tst": "1406293783", "desc": "Ninabben"}
+{"_type": "waypoint", "lon": "11.2657619", "rad": "200.0", "lat": "60.3217838", "owner": "hufza", "tst": "1406470629", "desc": "Merethe"}
+{"_type": "waypoint", "lon": "11.0961365", "rad": "200.0", "lat": "59.9962956", "owner": "hufza", "tst": "1406474469", "desc": "Marianne"}
+{"_type": "waypoint", "lon": "11.2681277", "rad": "100.0", "owner": "kolaf", "lat": "60.3857101", "tst": "1405951331", "desc": "Holt "}
+{"_type": "waypoint", "lon": "11.24288", "rad": "100.0", "owner": "kolaf", "lat": "60.4025275", "tst": "1406294942", "desc": "Kiwi Minnesund, store"}
+{"_type": "waypoint", "lon": "11.2680713", "rad": "500.0", "lat": "60.3857974", "owner": "kolaf", "tst": "1437384482", "desc": "Holt"}
+{"_type": "waypoint", "lon": "11.2680713", "rad": "500.0", "owner": "kolaf", "lat": "60.3857974", "tst": "1437384482", "desc": "Holt"}
+{"_type": "waypoint", "lon": "11.2680202", "rad": "500.0", "lat": "60.3856875", "owner": "sirius", "tst": "1406100436", "desc": "Holt, home"}
+{"_type": "waypoint", "lon": 11.2679772, "rad": "500", "owner": "kolaf", "tid": "b2", "lat": 60.3855019, "tst": "1437413468", "desc": "Holt, home "}
+{"_type": "waypoint", "lat": 60.3855019, "lon": 11.2679772, "rad": "500", "tid": "b2", "owner": "kolaf", "tst": "1437413468", "desc": "Holt, home "}
+{"_type": "waypoint", "lon": 11.2679772, "rad": "500", "owner": "kolaf", "tid": "b2", "lat": 60.3855019, "tst": "1437413468", "desc": "Holt, home"}
+{"_type": "waypoint", "lat": 61.2291869, "lon": 10.4342417, "rad": "2000", "tid": "9d", "owner": "kolaf", "tst": "1437565352", "desc": "Hunderfossen"}
+{"_type": "waypoint", "lon": 11.2679772, "rad": "500", "owner": "kolaf", "tid": "9d", "lat": 60.3855019, "tst": "1437413468", "desc": "Holt, home"}
