@@ -17,11 +17,10 @@ var prepopulated_places = [["Butikken", "store","butikk"],["Mortal peril", "mort
 var dynamic_places = [];
 var offset_count = 1;
 var hand_length = 220;
-var clock_radius = 80;
 var maximum_places = get_maximum_sectors (8);
 if(get_magic()){
 	var line_colour = "#ffffff";
-	var animation_time = 10;
+	var animation_time = 5;
 	}else{
 	var animation_time = 80;
 	var line_colour = "#000000";
@@ -206,7 +205,6 @@ function draw_face() {
 		context.translate(0, 0);
 		
 		context.rotate(degreesToRadians ( index*360/places.length));
-		///context.translate(clock_radius, 0);
 		 
 		context.moveTo(0, 0);
 		context.lineTo(canvas.width/2, 0);
@@ -495,7 +493,7 @@ function get_sector (user, add) {
 	return 0;
 }
 
-
+/*
 $(function(){
 	canvas = document.getElementById('myCanvas');
 	context = canvas.getContext('2d');
@@ -503,21 +501,24 @@ $(function(){
 	initialise_places ();
 	clockApp();
 });		
-	
+	*/
 $(document).ready( function(){
-  		
+  		canvas = document.getElementById('myCanvas');
+	context = canvas.getContext('2d');
+	context.strokeStyle = line_colour;
+	initialise_places ();
+	clockApp();
   		//Get the canvas & context
-  		var c = $('#myCanvas');
-  		var ct = c.get(0).getContext('2d');
-  		var container = $(c).parent();
+  		var container = $(canvas).parent();
   		
   		//Run function when browser  resize
 	  	//$(window).resize( respondCanvas );
 	  	
 	  	function respondCanvas(){
-  			c.attr('width', $(container).width() ); //max width
-  			c.attr('height', $(container).height() ); //max height
-  			
+  			//canvas.attr('width', $(container).width() ); //max width
+  			//canvas.attr('height', $(container).height() ); //max height
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
   			//Redraw & reposition content
   			createClock();
 		}

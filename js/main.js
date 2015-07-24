@@ -181,8 +181,10 @@ jQuery(document).ready(function($) {
 		table = $('<table/>').addClass('xsmall').addClass('calendar-table');
 		opacity = 1;
 
-
+		index = 0;
 		for (var i in eventList) {
+			if(index>maximumEvents) break;
+			index++;
 			var e = eventList[i];
 
 			var row = $('<tr/>').css('opacity',opacity);

@@ -10,7 +10,7 @@ var weatherParams = {
     'units':'metric',
     'lang':lang
 };
-
+var maximumEvents = 10;
 var feed = 'http://www.vg.no/rss/feed/?categories=1068,1069,1070,1097,1101,1102,1107&keywords=&limit=10&format=rss';
 //var feed = 'http://www.nu.nl/feeds/rss/achterklap.rss';
 //var feed = 'http://www.nu.nl/feeds/rss/opmerkelijk.rss';
