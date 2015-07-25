@@ -17,8 +17,14 @@ var prepopulated_places = [["Butikken", "store","butikk"],["Mortal peril", "mort
 var dynamic_places = [];
 var offset_count = 1;
 var hand_length = 220;
-var clock_radius = 80;
 var maximum_places = get_maximum_sectors (8);
+if(get_magic()){
+	var line_colour = "#ffffff";
+	var animation_time = 5;
+	}else{
+	var animation_time = 80;
+	var line_colour = "#000000";
+	}
 
 var maximum_dynamic_places = maximum_places;
 var data_file = "current_raw.html";
@@ -35,13 +41,14 @@ var canvas;
 var context;
 var first_time = true;
 var visible_users = get_visible_users();
-/*
-ticSound = new Audio('clock.ogg'); 
-ticSound.addEventListener('ended', function() {
-    this.currentTime = 0;
-    this.play();
-}, false);
-*/
+var ticSound = 0;
+if(get_sound()){
+	ticSound = new Audio('clock.ogg'); 
+	ticSound.addEventListener('ended', function() {
+		this.currentTime = 0;
+		this.play();
+	}, false);
+}
 
 
 function check_user_display (user) {
@@ -79,13 +86,23 @@ function get_sound() {
 	}
 }
 
-var clockImage = new Image();
-var clockImageLoaded = false;
-clockImage.onload = function(){
-  clockImageLoaded = true;
+function get_magic() {
+	var user_string =$.urlParam("magic");
+	if (user_string=="1") {
+		return true;
+	} else {
+		return false;
+	}
 }
-clockImage.src = get_background();
-
+if(!get_magic()){
+	var clockImage = new Image();
+	var clockImageLoaded = false;
+	clockImage.onload = function(){
+	  clockImageLoaded = true;
+	}
+	clockImage.src = get_background();
+}
+	
 function get_maximum_sectors(fallback) {
 	var user_string =$.urlParam("sectors");
 	// console.log (user_string);
@@ -108,6 +125,8 @@ function sector (number) {
 }
 function user_configuration (name,colour) {
 	this.colour = colour;
+	if(get_magic())
+	this.colour = line_colour;
 	this.name = name;
 	this.width = 5+parseInt(Math.random() *10, 10);
 	this.offset = offset_count;
@@ -166,17 +185,18 @@ function remove_oldest_places() {
 	
 function draw_face() {
 	context.clearRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height);
-	if (clockImage.src.length>0) {
+	if (clockImage && clockImage.src.length>0) {
 		addBackgroundImage();
 	}
 	var index = 0;
 	var places = dynamic_places;//static_places.concat (dynamic_places);
 	for(index in places) {
 		context.save();
+		
 		context.translate(0, 0);
 		context.rotate(degreesToRadians ( index*360/places.length + 0.5*360/places.length));
 		var text_size = context.measureText(places[index].name);
-
+		context.fillStyle = line_colour;
 		context.translate (canvas.width/2- text_size.width-20, 0);
 		context.fillText(places [index].name, -3, 0);
 		context.restore();
@@ -185,7 +205,6 @@ function draw_face() {
 		context.translate(0, 0);
 		
 		context.rotate(degreesToRadians ( index*360/places.length));
-		///context.translate(clock_radius, 0);
 		 
 		context.moveTo(0, 0);
 		context.lineTo(canvas.width/2, 0);
@@ -197,6 +216,7 @@ function draw_face() {
 	
 }
 function addBackgroundImage(){
+if(clockImage)
   context.drawImage(clockImage, canvas.width/2 * -1 ,canvas.height/2 * -1,canvas.width, canvas.height);
 }
 
@@ -224,8 +244,8 @@ function get_user (user) {
 
 function drawUserHand(user){
   context.save();
-  context.fillStyle = 'black';
-  context.strokeStyle = '#555';
+  //context.fillStyle = 'black';
+  //context.strokeStyle = '#555';
   context.rotate( degreesToRadians(configuration [user].current_position));
   drawHand(configuration[user].colour,hand_length, configuration[user].width, 5, user);	
   context.restore();
@@ -267,15 +287,19 @@ function animate (user) {
 	}
 	if (animated) {
 		if (!started_animating) {
-			//ticSound.play();
+			if(ticSound){
+			ticSound.play();
+			}
 			started_animating = true;
 			
 		}
-		setTimeout(function() { animate();}, 80);
+		setTimeout(function() { animate();}, animation_time);
 	}else {
 		started_animating = false;
-		//ticSound.pause();
-		//ticSound.currentTime = 0;
+		if(ticSound){
+		ticSound.pause();
+		ticSound.currentTime = 0;
+		}
 	}
 	
 }
@@ -469,28 +493,32 @@ function get_sector (user, add) {
 	return 0;
 }
 
-
+/*
 $(function(){
 	canvas = document.getElementById('myCanvas');
 	context = canvas.getContext('2d');
+	context.strokeStyle = line_colour;
 	initialise_places ();
 	clockApp();
 });		
-	
+	*/
 $(document).ready( function(){
-  		
+  		canvas = document.getElementById('myCanvas');
+	context = canvas.getContext('2d');
+	context.strokeStyle = line_colour;
+	initialise_places ();
+	clockApp();
   		//Get the canvas & context
-  		var c = $('#myCanvas');
-  		var ct = c.get(0).getContext('2d');
-  		var container = $(c).parent();
+  		var container = $(canvas).parent();
   		
   		//Run function when browser  resize
 	  	//$(window).resize( respondCanvas );
 	  	
 	  	function respondCanvas(){
-  			c.attr('width', $(container).width() ); //max width
-  			c.attr('height', $(container).height() ); //max height
-  			
+  			//canvas.attr('width', $(container).width() ); //max width
+  			//canvas.attr('height', $(container).height() ); //max height
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
   			//Redraw & reposition content
   			createClock();
 		}
