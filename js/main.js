@@ -386,13 +386,13 @@ jQuery(document).ready(function($) {
 	})();
 
 	(function showPowerUsage(){
-		$.getJSON('http://192.168.1.2:8080/rest/items/CurrentTotalPower/?type=json', {}, function(json, textStatus) {
+		$.getJSON('http://kolaf.homeip.net:8080/rest/items/CurrentTotalPower/?type=json', {}, function(json, textStatus) {
 			if(json){
 				var power = json.state;
 				$('.power').updateWithText("P: " + power + "W");
 			}
 		});
-		setTimeOut(function(){
+		setTimeout(function(){
 			showPowerUsage();
 		}, 120000);
 	})();
