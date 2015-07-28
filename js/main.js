@@ -385,4 +385,16 @@ jQuery(document).ready(function($) {
 		}, 5500);
 	})();
 
+	(function showPowerUsage(){
+		$.getJSON('http://192.168.1.2:8080/rest/items/CurrentTotalPower/?type=json', {}, function(json, textStatus) {
+			if(json){
+				var power = json.state;
+				$('.power').updateWithText("P: " + power + "W");
+			}
+		});
+		setTimeOut(function(){
+			showPowerUsage();
+		}, 120000);
+	})();
+
 });

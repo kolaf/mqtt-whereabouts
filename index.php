@@ -19,6 +19,7 @@
   Your browser does not support canvas
 </canvas>
 </div>
+ 	<div class="center-ver right"><div class="power medium"></div></div>
 	<div class="bottom center-hor"><div class="news medium"></div></div>
 
 </div>
