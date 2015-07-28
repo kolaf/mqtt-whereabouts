@@ -77,6 +77,12 @@ body, html {
 	bottom: 50px;
 }
 
+.bottom-clock
+{
+	position: absolute;
+	bottom: 100px;
+}
+
 .xxsmall
 {
 	font-size: 15px;

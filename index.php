@@ -15,11 +15,11 @@
 
 	<div class="top left"><div class="date small dimmed"></div><div class="time"></div><div class="calendar xxsmall"></div></div>
 	<div class="top right"><div class="windsun small dimmed"></div><div class="temp"></div><div class="forecast small dimmed"></div></div>
-	<div class="center-clock center-hor"><canvas id="myCanvas" width="600" height="600" style = "margin-left: auto; margin-right: auto; display: block;">
+	<div class="bottom-clock center-hor"><canvas id="myCanvas" width="600" height="600" style = "margin-left: auto; margin-right: auto; display: block;">
   Your browser does not support canvas
 </canvas>
 </div>
- 	<div class="bottom center-hor"><div class="power medium"></div></div>
+ 	<div class="top center-hor"><div class="power medium"></div></div>
 	<div class="bottom center-hor"><div class="news medium"></div></div>
 
 </div>
