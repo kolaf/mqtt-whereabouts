@@ -36,6 +36,12 @@ function kmh2beaufort(kmh)
 	return 12;
 }
 
+function callback(data) {
+    console.log(data);
+    var power = data.state;
+	$('.power').updateWithText("P: " + power + "W",1000);
+}
+
 jQuery(document).ready(function($) {
 
 	var news = [];
@@ -386,12 +392,34 @@ jQuery(document).ready(function($) {
 	})();
 
 	(function showPowerUsage(){
-		$.getJSON('http://kolaf.homeip.net:8080/rest/items/CurrentTotalPower/?type=json', {}, function(json, textStatus) {
+		$.ajax({
+    url: 'http://kolaf.homeip.net:8080/rest/items/CurrentTotalPower/?type=jsonp&callback=?',
+ 
+    // The name of the callback parameter, as specified by the YQL service
+    jsonp: "callback",
+ 
+    // Tell jQuery we're expecting JSONP
+    dataType: "jsonp",
+ 
+    // Tell YQL what we want and that we want JSON
+    data: {    },
+ 
+    // Work with the response
+    success: function( json ) {
+        if(json){
+				var power = json.state;
+				$('.power').updateWithText("P: " + power + "W");
+			}
+    }
+});
+		/*
+		$.getJSON('http://kolaf.homeip.net:8080/rest/items/CurrentTotalPower/?callback=?', function(json) {
 			if(json){
 				var power = json.state;
 				$('.power').updateWithText("P: " + power + "W");
 			}
 		});
+*/
 		setTimeout(function(){
 			showPowerUsage();
 		}, 120000);
