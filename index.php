@@ -5,9 +5,13 @@
 		<?php include('css/main.css') ?>
 	</style>
 	<link rel="stylesheet" type="text/css" href="css/weather-icons.css">
+	<link href="logtail.css" rel="stylesheet" type="text/css">
+	<script src="js/jquery.js"></script>
 	<script type="text/javascript">
 		var gitHash = '<?php echo trim(`git rev-parse HEAD`) ?>';
 	</script>
+    <script type="text/javascript" src="logtail.js"></script>
+
 	<meta name="google" value="notranslate" />
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 </head>
@@ -19,6 +23,7 @@
   Your browser does not support canvas
 </canvas>
 </div>
+<div class="center-ver right xxsmall conversations"><pre id="data">Loading...</pre></div>
  	<div class="top center-hor"><div class="power medium"></div></div>
 	<div class="bottom center-hor"><div class="news medium"></div></div>
 

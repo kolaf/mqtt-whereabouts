@@ -168,6 +168,13 @@ body, html {
 	top: -35px;
 }
 
+.conversations {
+	width: 250px;
+	word-wrap: break-word;
+	text-align: left;
+	line-height: 15px;
+}
+
 .forecast-table {
 	float: right;
 	text-align: right;

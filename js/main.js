@@ -39,7 +39,7 @@ function kmh2beaufort(kmh)
 function callback(data) {
     console.log(data);
     var power = data.state;
-	$('.power').updateWithText("P: " + power + "W",1000);
+	$('.power').updateWithText(power + "W",1000);
 }
 
 jQuery(document).ready(function($) {
