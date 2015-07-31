@@ -20,7 +20,7 @@ body, html {
 .top
 {
 	position: absolute;
-	top: 50px;
+	top: 100px;
 }
 
 .left
@@ -74,13 +74,13 @@ body, html {
 .bottom
 {
 	position: absolute;
-	bottom: 50px;
+	bottom: 100px;
 }
 
 .bottom-clock
 {
 	position: absolute;
-	bottom: 100px;
+	bottom: 190px;
 }
 
 .xxsmall
