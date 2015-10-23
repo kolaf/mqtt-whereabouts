@@ -113,22 +113,20 @@ def on_message(client, userdata, msg):
 			save_waypoints()
 		
 		
-	if decoded['_type'] == "location":
-		root, user, device = msg.topic.split('/')
-		print "Reloading waypoints"
-		load_waypoints()
-		# Adds waypoint to the incoming message if a match is found.
-		decoded = in_range(decoded)
-		if "event" in decoded:
-			current[user] = decoded
-			current_raw[msg.topic] = decoded
-			#create_page()
-			dump_raw ()
-		time = datetime.datetime.fromtimestamp(
-        int(decoded ['tst'])
-		).strftime('%Y-%m-%d %H:%M:%S')
-		output.write (time + "| " +msg.topic + " | " +json.dumps(decoded).encode('utf-8') + "\n")
-		output.flush ()
+		if decoded['_type'] == "location":
+			root, user, device = msg.topic.split('/')
+			print "Reloading waypoints"
+			load_waypoints()
+			# Adds waypoint to the incoming message if a match is found.
+			decoded = in_range(decoded)
+			if "event" in decoded:
+				current[user] = decoded
+				current_raw[msg.topic] = decoded
+				#create_page()
+				dump_raw ()
+			time = datetime.datetime.fromtimestamp(int(decoded ['tst'])).strftime('%Y-%m-%d %H:%M:%S')
+			output.write (time + "| " +msg.topic + " | " +json.dumps(decoded).encode('utf-8') + "\n")
+			output.flush ()
 	
 
 def create_page():		

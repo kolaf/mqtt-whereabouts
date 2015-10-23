@@ -18,3 +18,5 @@
 {"_type": "waypoint", "lon": 11.3061385, "rad": "500", "owner": "kolaf", "tid": "9d", "lat": 60.2945629, "tst": "1437924475", "desc": "Strand"}
 {"_type": "waypoint", "lat": 60.3856939, "lon": 11.2680108, "rad": "500", "tid": "9d", "owner": "kolaf", "tst": "1437413468", "desc": "Holt, home"}
 {"_type": "waypoint", "lon": 11.1640605, "rad": "400", "owner": "kolaf", "tid": "9d", "lat": 60.1430631, "tst": "1438174722", "desc": "Coop Jessheim, store"}
+{"_type": "waypoint", "lat": 59.9219414, "lon": 10.6742215, "rad": "200", "tid": "9d", "owner": "kolaf", "tst": "1438598538", "desc": "Statsat,  work "}
+{"_type": "waypoint", "lon": -111.9710405, "rad": "500", "owner": "kolaf", "tid": "9d", "lat": 41.22506, "tst": "1439040913", "desc": "Hotell,  Ogden"}
